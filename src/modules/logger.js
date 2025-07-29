@@ -11,7 +11,6 @@ export default class Logger {
     log(obj, msg) {
         console.log(`${this.#getCurrentDate()} - ${msg}`);
         console.log(obj);
-        console.log("---------------------------------------------")
 
     }
 
