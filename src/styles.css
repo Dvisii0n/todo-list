@@ -1,0 +1,35 @@
+@import '~js-datepicker/dist/datepicker.min.css';
+
+p {
+    margin: 0;
+    padding: 0;
+}
+
+.board-container {
+    border: 1px solid black;
+    padding: 20px;
+
+
+}
+
+.project-container {
+    border: 1px solid rgb(3, 255, 45);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.task-container {
+    border: 1px solid rgb(74, 133, 60);
+    padding: 20px;
+}
+
+.task-form,
+.project-form {
+    width: 500px;
+    height: 500px;
+    display: flex;
+    flex-direction: column;
+
+}
