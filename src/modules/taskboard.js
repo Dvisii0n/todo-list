@@ -25,7 +25,7 @@ class Board extends Logger {
     }
 
     load() {
-        const save = saveManager.getSave(this.name);
+        const save = JSON.parse(saveManager.getSave(this.name));
         this.log(save, "Save loaded");
         return save;
 
@@ -48,18 +48,19 @@ class Board extends Logger {
 }
 
 class Task {
-    constructor(title, description, priority, dateObj) {
+    constructor(title, description, priority, dateObj, doneStatus) {
         this.title = title;
         this.description = description;
-        this.date = dateObj;
-        this.dueDate = this.#setDueDate(this.date);
-        this.priority = priority;
-        this.done = false;
+        this.dateObj = dateObj;
+        this.dueDate = this.#setDueDate(this.dateObj);
+        this.priorityTxt = priority;
+        this.done = doneStatus;
+        this.container = null;
 
     }
 
     #setDueDate(date) {
-        return format(new Date(date.year, date.month, date.day), 'dd/MM/yyyy');
+        return format(new Date(date.year, date.month - 1, date.day), 'dd/MM/yyyy');
 
     }
 
@@ -76,19 +77,19 @@ class Project extends Logger {
 
     }
 
-    addByPriority(task) {
-        const priority = task.priority;
+    #addByPriority(task) {
+        const priority = task.priorityTxt;
         if (priority === "high") {
             this.taskList.splice(0, 0, task);
         } else if (priority === "low") {
             this.taskList.push(task);
         } else {
-            throw new Error("Invalid priority")
+            throw new Error("Invalid priority, must be 'high' or 'low'");
         }
     }
 
     addTask(task) {
-        this.addByPriority(task);
+        this.#addByPriority(task);
         this.log(this.taskList, `Added task <${task.title}> to project <${this.title}>`);
     }
 
