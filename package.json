@@ -21,14 +21,17 @@
     "homepage": "https://github.com/Dvisii0n/webpack-template#readme",
     "devDependencies": {
         "@date-fns/tz": "^1.2.0",
+        "css-loader": "^7.1.2",
         "html-loader": "^5.1.0",
         "html-webpack-plugin": "^5.6.3",
+        "style-loader": "^4.0.0",
         "webpack": "^5.100.2",
         "webpack-cli": "^6.0.1",
         "webpack-dev-server": "^5.2.2",
         "webpack-merge": "^6.0.1"
     },
     "dependencies": {
-        "date-fns": "^4.1.0"
+        "date-fns": "^4.1.0",
+        "js-datepicker": "^5.18.4"
     }
 }
