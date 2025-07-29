@@ -8,7 +8,43 @@
 </head>
 
 <body>
-    <p>Hello World</p>
+    <dialog id="add-task-dialog">
+        <form class="task-form" method="post">
+            <label for="title">Title:</label>
+            <input type="text" name="title" required>
+
+            <label for="desc">Description:</label>
+            <input type="text" name="desc" required>
+
+            <label for="priority">Pioririty</label>
+            <select name="priority">
+                <option value="high">High</option>
+                <option value="low">Low</option>
+            </select>
+
+            <label for="picker">Due date:</label>
+            <input type="text" name="picker" id="date-picker" required>
+
+            <button type="submit" class="task-submit">Add Task</button>
+
+        </form>
+
+    </dialog>
+
+    <dialog id="add-project-dialog">
+        <form class="project-form" method="post">
+            <label for="title">Title:</label>
+            <input type="text" name="title" required>
+
+            <label for="desc">Description:</label>
+            <input type="text" name="desc" required>
+
+
+
+            <button type="submit" class="project-submit">Create Project</button>
+
+        </form>
+    </dialog>
 
 </body>
 
