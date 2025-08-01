@@ -2,19 +2,31 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
 </head>
 
 <body>
+    <dialog id="add-project-dialog">
+        <form class="project-form" method="post">
+            <label for="title">Title:</label>
+            <input type="text" name="title" required />
+
+            <label for="desc">Description:</label>
+            <input type="text" name="desc" required />
+
+            <button type="submit" class="project-submit">Create Project</button>
+        </form>
+    </dialog>
+
     <dialog id="add-task-dialog">
         <form class="task-form" method="post">
             <label for="title">Title:</label>
-            <input type="text" name="title" required>
+            <input type="text" name="title" required />
 
             <label for="desc">Description:</label>
-            <input type="text" name="desc" required>
+            <input type="text" name="desc" required />
 
             <label for="priority">Pioririty</label>
             <select name="priority">
@@ -22,30 +34,14 @@
                 <option value="low">Low</option>
             </select>
 
-            <label for="picker">Due date:</label>
-            <input type="text" name="picker" id="date-picker" required>
+            <label for="date">Due date:</label>
+            <input type="text" name="date" id="date-picker" required />
 
             <button type="submit" class="task-submit">Add Task</button>
-
-        </form>
-
-    </dialog>
-
-    <dialog id="add-project-dialog">
-        <form class="project-form" method="post">
-            <label for="title">Title:</label>
-            <input type="text" name="title" required>
-
-            <label for="desc">Description:</label>
-            <input type="text" name="desc" required>
-
-
-
-            <button type="submit" class="project-submit">Create Project</button>
-
         </form>
     </dialog>
 
+    <div class="taskboard"></div>
 </body>
 
 </html>
