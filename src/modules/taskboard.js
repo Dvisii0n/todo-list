@@ -1,4 +1,3 @@
-import { format } from "date-fns";
 import Logger from "./logger.js";
 
 class SaveHandler extends Logger {
@@ -50,21 +49,18 @@ class Board extends Logger {
         this.#saveChanges();
     }
 
+    editProject(projectID, newData) {
+        const project = this.boardData[projectID];
+        project.title = newData.title;
+        project.description = newData.description;
+        this.log(`Edited project <${project.title}>`);
+        this.#saveChanges();
+    }
+
     removeProject(projectID) {
         delete this.boardData[projectID];
         this.log(`Removed <${projectID}> from board`);
         this.#saveChanges();
-    }
-
-    #addByPriority(task, project) {
-        const priority = task.priority.toLowerCase();
-        if (priority === "high") {
-            project.taskList.splice(0, 0, task);
-        } else if (priority === "low") {
-            project.taskList.push(task);
-        } else {
-            throw new Error("Invalid priority, must be 'high' or 'low'");
-        }
     }
 
     #saveChanges() {
@@ -73,8 +69,21 @@ class Board extends Logger {
 
     addTaskToProject(task, projectID) {
         const project = this.boardData[projectID];
-        this.#addByPriority(task, project);
+        project.taskList.push(task);
+        task.index = project.taskList.indexOf(task);
         this.log(`Added task <${task.title}> to project <${project.title}>`);
+        this.#saveChanges();
+    }
+
+    editTaskFromProject(taskIndex, projectID, newData) {
+        const project = this.boardData[projectID];
+        const taskList = project.taskList;
+        const task = taskList[taskIndex];
+        task.title = newData.title;
+        task.description = newData.description;
+        task.priority = newData.priority;
+        task.dueDate = newData.dueDate;
+        this.log(`Edited task <${task.title}> from project <${project.title}>`);
         this.#saveChanges();
     }
 
@@ -95,17 +104,13 @@ class Board extends Logger {
 }
 
 class Task {
-    constructor(title, description, priority, dateObj) {
+    constructor(title, description, priority, dueDate) {
         this.title = title;
         this.description = description;
-        this.dateObj = dateObj;
-        this.dueDate = this.#setDueDate(this.dateObj);
+        this.dueDate = dueDate;
         this.priority = priority;
         this.done = false;
-    }
-
-    #setDueDate(date) {
-        return format(new Date(date.year, date.month - 1, date.day), "dd/MM/yyyy");
+        this.index = null;
     }
 }
 
