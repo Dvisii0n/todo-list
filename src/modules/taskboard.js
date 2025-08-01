@@ -71,9 +71,8 @@ class Board extends Logger {
         this.saveHandler.saveChanges(this.boardData, this.name);
     }
 
-    addTaskToProject(taskIndex, projectID) {
+    addTaskToProject(task, projectID) {
         const project = this.boardData[projectID];
-        const task = project.taskList[taskIndex];
         this.#addByPriority(task, project);
         this.log(`Added task <${task.title}> to project <${project.title}>`);
         this.#saveChanges();
