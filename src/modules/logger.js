@@ -8,9 +8,12 @@ export default class Logger {
         return `${format(timestamp, "hh:mm:ss")}`
     }
 
-    log(obj, msg) {
+    log(msg, obj) {
         console.log(`${this.#getCurrentDate()} - ${msg}`);
-        console.log(obj);
+        if (obj) {
+            console.log(obj);
+        }
+
 
     }
 
