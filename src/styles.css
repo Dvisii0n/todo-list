@@ -1,4 +1,4 @@
-@import '~js-datepicker/dist/datepicker.min.css';
+@import "~js-datepicker/dist/datepicker.min.css";
 
 p {
     margin: 0;
@@ -8,8 +8,6 @@ p {
 .board-container {
     border: 1px solid black;
     padding: 20px;
-
-
 }
 
 .project-container {
@@ -31,5 +29,4 @@ p {
     height: 500px;
     display: flex;
     flex-direction: column;
-
 }
