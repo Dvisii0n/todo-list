@@ -271,10 +271,6 @@ const uiHandler = new UiHandler(
 uiHandler.renderBoard(board);
 
 export {
-    SaveHandler,
-    FormHandler,
     Board,
     UiHandler,
-    ContainerFactory,
-    ButtonFactory,
 };
