@@ -1,117 +1,124 @@
 import { format } from "date-fns";
-import Logger from "./logger.js"
-import SaveManager from "./saveManager.js";
+import Logger from "./logger.js";
 
+class SaveHandler extends Logger {
+    constructor() {
+        super();
+    }
 
-const saveManager = new SaveManager();
+    saveChanges(data, saveName) {
+        localStorage.setItem(`${saveName}`, JSON.stringify(data));
+        this.log("Saved Changes", data);
+    }
+
+    deleteBoard(saveName) {
+        localStorage.removeItem(saveName);
+        this.log(`Deleted ${saveName}`);
+    }
+
+    loadSave(saveName) {
+        const save = JSON.parse(localStorage.getItem(saveName));
+        if (save === null) {
+            this.log("No save detected");
+        } else {
+            this.log("Save loaded", save);
+            return save;
+        }
+    }
+}
 
 class Board extends Logger {
-    constructor(name) {
+    constructor(saveHandler, saveName) {
         super();
-        this.name = name;
-        this.boardObj = {};
+        this.name = saveName;
+        this.saveHandler = saveHandler;
+        this.boardData = this.#setBoardData();
+    }
+
+    #setBoardData() {
+        const save = this.saveHandler.loadSave(this.name);
+        if (save) {
+            return save;
+        } else {
+            return {};
+        }
     }
 
     addProject(project) {
-        this.boardObj[project.title] = project;
-        this.log(project, `Added project <${project.title}> to board`);
-        this.log(this.boardObj, "Updated boardObj");
+        this.boardData[project.id] = project;
+        this.log(`Added project <${project.title}> to board`);
+        this.#saveChanges();
     }
 
-    removeProject(project) {
-        delete this.boardObj[project.id];
-        this.log(this.boardObj, `Removed <${project.title}> from board`)
-
+    removeProject(projectID) {
+        delete this.boardData[projectID];
+        this.log(`Removed <${projectID}> from board`);
+        this.#saveChanges();
     }
 
-    load() {
-        const save = JSON.parse(saveManager.getSave(this.name));
-        this.log(save, "Save loaded");
-        return save;
-
-    }
-
-    save() {
-        saveManager.save(this.name, this.boardObj);
-    }
-
-    delete() {
-        saveManager.deleteSave(this.name);
-    }
-
-    populate() {
-        this.boardObj = this.load();
-
-    }
-
-
-}
-
-class Task {
-    constructor(title, description, priority, dateObj, doneStatus) {
-        this.title = title;
-        this.description = description;
-        this.dateObj = dateObj;
-        this.dueDate = this.#setDueDate(this.dateObj);
-        this.priorityTxt = priority;
-        this.done = doneStatus;
-        this.container = null;
-
-    }
-
-    #setDueDate(date) {
-        return format(new Date(date.year, date.month - 1, date.day), 'dd/MM/yyyy');
-
-    }
-
-
-}
-
-class Project extends Logger {
-    constructor(title, description) {
-        super();
-        this.title = title;
-        this.description = description;
-        this.taskList = [];
-        this.id = crypto.randomUUID();
-
-    }
-
-    #addByPriority(task) {
-        const priority = task.priorityTxt;
+    #addByPriority(task, project) {
+        const priority = task.priority.toLowerCase();
         if (priority === "high") {
-            this.taskList.splice(0, 0, task);
+            project.taskList.splice(0, 0, task);
         } else if (priority === "low") {
-            this.taskList.push(task);
+            project.taskList.push(task);
         } else {
             throw new Error("Invalid priority, must be 'high' or 'low'");
         }
     }
 
-    addTask(task) {
-        this.#addByPriority(task);
-        this.log(this.taskList, `Added task <${task.title}> to project <${this.title}>`);
+    #saveChanges() {
+        this.saveHandler.saveChanges(this.boardData, this.name);
     }
 
-    removeTask(task) {
-        this.taskList.splice(this.taskList.indexOf(task), 1);
-        this.log(this.taskList, `Deleted task <${task.title}> from project <${this.title}>`);
+    addTaskToProject(taskIndex, projectID) {
+        const project = this.boardData[projectID];
+        const task = project.taskList[taskIndex];
+        this.#addByPriority(task, project);
+        this.log(`Added task <${task.title}> to project <${project.title}>`);
+        this.#saveChanges();
     }
 
-    markTaskAsDone(task) {
-        const index = this.taskList.indexOf(task);
-        this.taskList[index].done = true;
-        this.log(this.taskList[index], "Task done status changed to true");
+    removeTaskFromProject(taskIndex, projectID) {
+        const project = this.boardData[projectID];
+        const task = project.taskList[taskIndex];
+        project.taskList.splice(project.taskList.indexOf(task), 1);
+        this.log(`Deleted task <${task.title}> from project <${project.title}>`);
+        this.#saveChanges();
+    }
+
+    markTaskAsDone(taskIndex, projectID) {
+        const project = this.boardData[projectID];
+        project.taskList[taskIndex].done = true;
+        this.log("Task done status changed to true");
+        this.#saveChanges();
     }
 }
 
-export { Board, Task, Project }
+class Task {
+    constructor(title, description, priority, dateObj) {
+        this.title = title;
+        this.description = description;
+        this.dateObj = dateObj;
+        this.dueDate = this.#setDueDate(this.dateObj);
+        this.priority = priority;
+        this.done = false;
+    }
 
+    #setDueDate(date) {
+        return format(new Date(date.year, date.month - 1, date.day), "dd/MM/yyyy");
+    }
+}
 
+class Project extends Logger {
+    constructor(title, description, saveHandler) {
+        super();
+        this.saveHandler = saveHandler;
+        this.title = title;
+        this.description = description;
+        this.taskList = [];
+        this.id = crypto.randomUUID();
+    }
+}
 
-
-
-
-
-
-
+export { SaveHandler, Board, Task, Project };
