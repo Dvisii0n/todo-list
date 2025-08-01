@@ -1,227 +1,157 @@
-import { Board, Task, Project } from "./taskboard.js";
 import DomManipulationTools from "./domTools.js";
 import datepicker from "js-datepicker";
+import { SaveHandler, Board, Task, Project } from "./taskboard.js";
 
-class BoardContainer extends DomManipulationTools {
-    constructor(name) {
-        super();
-        this.buttons = new ButtonMethods();
-        this.board = new Board(name);
-        this.container = this.createDiv("board-container");
-        this.appendToBody(this.container);
+const placeHolderDate = { day: 31, month: 7, year: 2025 };
 
-        this.container.appendChild(buttons.addProjectToBoard(this));
-    }
-
-    addProjectContainer(projectContainer) {
-        this.board.addProject(projectContainer.project);
-        this.container.appendChild(projectContainer.container);
-    }
-
-    removeProjectContainer(projectContainer) {
-        this.board.removeProject(projectContainer.project);
-        this.container.removeChild(projectContainer.container);
-    }
-
-    loadContent() {
-        this.board.populate();
-        const values = Object.values(this.board.boardObj);
-        for (let project of values) {
-            console.log(project);
-            const projectContainer = new ProjectContainer(
-                project.title,
-                project.description
-            );
-            const taskList = project.taskList;
-            projectContainer.loadTasks(taskList);
-            this.container.appendChild(projectContainer.container);
-        }
-    }
-}
-
-class ProjectContainer extends DomManipulationTools {
-    constructor(title, description) {
-        super();
-        this.project = new Project(title, description);
-        this.content = {
-            title: this.createParagraph("project-title", this.project.title),
-            description: this.createParagraph(
-                "project-description",
-                this.project.description
-            ),
-        };
-        this.container = this.createContainerWithChilds(
-            "project-container",
-            this.content
-        );
-        this.container.id = crypto.randomUUID();
-
-        this.container.appendChild(buttons.removeProjectFromBoard(board, this));
-        this.container.appendChild(buttons.addTaskToProject(this));
-    }
-
-    addTaskContainer(taskContainer) {
-        this.project.addTask(taskContainer.task);
-        this.loadTasks(this.project.taskList);
-    }
-
-    removeTaskContainer(taskContainer) {
-        this.project.removeTask(taskContainer.task);
-        this.loadTasks(this.project.taskList);
-    }
-
-    clearTaskContainers() {
-        const containers = this.container.querySelectorAll(".task-container");
-        containers.forEach((task) => {
-            this.container.removeChild(task);
-        });
-    }
-
-    loadTasks(taskList) {
-        this.clearTaskContainers();
-        taskList.forEach((task) => {
-            let taskContainer = new TaskContainer(
-                task.title,
-                task.description,
-                task.priorityTxt,
-                task.dateObj,
-                this
-            );
-            this.container.appendChild(taskContainer.container);
-        });
-    }
-}
-
-class TaskContainer extends DomManipulationTools {
-    constructor(title, description, priority, dateObj, parentProject) {
-        super();
-        this.task = new Task(title, description, priority, dateObj);
-        this.content = {
-            title: this.createParagraph("task-title", this.task.title),
-            description: this.createParagraph(
-                "task-description",
-                this.task.description
-            ),
-            priorityTxt: this.createParagraph("task-priority", this.task.priorityTxt),
-            dueDate: this.createParagraph("task-dueDate", this.task.dueDate),
-        };
-
-        this.container = this.createContainerWithChilds(
-            "task-container",
-            this.content
-        );
-        this.container.appendChild(
-            buttons.removeTaskFromProject(this, parentProject)
-        );
-    }
-}
-
-class ButtonMethods extends DomManipulationTools {
+class ContainerFactory extends DomManipulationTools {
     constructor() {
         super();
     }
 
-    addProjectToBoard(board) {
-        const dialogBtn = this.createButton("add-project", "Add Project");
-        const dialog = document.querySelector("#add-project-dialog");
+    createBoardContainer() {
+        return this.createDiv("board-container");
+    }
 
-        dialogBtn.addEventListener("click", (event) => {
-            dialog.showModal();
+    createProjectContainer(project) {
+        const content = {
+            title: this.createParagraph("project-title", `${project.title}`),
+            desc: this.createParagraph("project-desc", `${project.description}`),
+        };
+        return this.createContainerWithChilds("project-container", content);
+    }
+
+    createTaskContainer(task) {
+        const content = {
+            title: this.createParagraph("task-title", `${task.title}`),
+            desc: this.createParagraph("task-desc", `${task.description}`),
+            priority: this.createParagraph("task-priority", `${task.priority}`),
+            date: this.createParagraph("task-date", `${task.dueDate}`),
+        };
+        return this.createContainerWithChilds("task-container", content);
+    }
+}
+
+class UiHandler extends DomManipulationTools {
+    constructor(containerFactory, buttonFactory) {
+        super();
+        this.containerFactory = containerFactory;
+        this.buttonFactory = buttonFactory;
+    }
+
+    clearBoard() {
+        container.removeChild(container.firstChild);
+    }
+
+    renderBoard(board) {
+        this.clearBoard();
+        const data = board.boardData;
+        const boardContainer = this.containerFactory.createBoardContainer();
+        boardContainer.appendChild(this.buttonFactory.createAddProjectButton());
+        const projects = Object.values(data);
+
+        projects.forEach((project) => {
+            const taskList = project.taskList;
+            const projectContainer =
+                this.containerFactory.createProjectContainer(project);
+            projectContainer.setAttribute("id", project.id);
+
+            projectContainer.appendChild(
+                this.buttonFactory.createRemoveProjectButton()
+            );
+
+            taskList.forEach((task) => {
+                const taskContainer = this.containerFactory.createTaskContainer(task);
+                projectContainer.appendChild(taskContainer);
+            });
+            boardContainer.appendChild(projectContainer);
         });
+        container.appendChild(boardContainer);
+    }
+}
 
+class ButtonFactory extends DomManipulationTools {
+    constructor(saveHandler, formHandler, board) {
+        super();
+        this.saveHandler = saveHandler;
+        this.formHandler = formHandler;
+        this.board = board;
+    }
+
+    createAddProjectButton() {
+        const projectDialog = document.querySelector("#add-project-dialog");
+        const button = this.createButton("add-project", "Add project");
         const form = document.querySelector(".project-form");
 
-        form.addEventListener("submit", (event) => {
-            event.preventDefault();
-            const formData = new FormData(form);
-            const projectContainer = new ProjectContainer(
-                formData.get("title"),
-                formData.get("desc")
-            );
-            board.addProjectContainer(projectContainer);
-            dialog.close();
-        });
-        return dialogBtn;
-    }
+        button.addEventListener("click", (event) => {
+            projectDialog.showModal();
 
-    removeProjectFromBoard(board, projectContainer) {
-        const removeBtn = this.createButton("remove-project", "Remove Project");
-        removeBtn.addEventListener("click", (event) => {
-            board.removeProjectContainer(projectContainer);
-        });
-        return removeBtn;
-    }
-
-    addTaskToProject(projectContainer) {
-        const dialogBtn = this.createButton("add-task", "Add Task");
-        const dialog = document.querySelector("#add-task-dialog");
-
-        dialogBtn.addEventListener("click", (event) => {
-            dialog.showModal();
-            const form = document.querySelector(".task-form");
             const newForm = form.cloneNode(true);
             form.parentNode.replaceChild(newForm, form);
 
-            const dateSetter = new DateSetter();
-
             newForm.addEventListener("submit", (event) => {
                 event.preventDefault();
-
-                const formData = new FormData(newForm);
-                const dateObj = dateSetter.createDateObj(formData);
-                const args = {
-                    title: formData.get("title"),
-                    desc: formData.get("desc"),
-                    priority: formData.get("priority"),
-                    dateObj: dateObj,
-                };
-                const taskContainer = new TaskContainer(
-                    args.title,
-                    args.desc,
-                    args.priority,
-                    args.dateObj,
-                    projectContainer
+                const data = this.formHandler.getProjectData(newForm);
+                const project = new Project(
+                    data.title,
+                    data.description,
+                    this.saveHandler
                 );
-                projectContainer.addTaskContainer(taskContainer);
-                dialog.close();
+                this.board.addProject(project);
+                projectDialog.close();
+                uiHandler.renderBoard(this.board);
             });
         });
-
-        return dialogBtn;
+        return button;
     }
 
-    removeTaskFromProject(taskContainer, projectContainer) {
-        const removeBtn = this.createButton("remove-task", "Remove Task");
-        removeBtn.addEventListener("click", (event) => {
-            projectContainer.removeTaskContainer(taskContainer);
+    createRemoveProjectButton() {
+        const button = this.createButton("remove-project", "Remove project");
+        button.addEventListener("click", (event) => {
+            this.board.removeProject(event.target.parentNode.id);
+            uiHandler.renderBoard(this.board);
         });
-        return removeBtn;
+        return button;
     }
 }
 
-class DateSetter {
-    constructor() {
-        const pickerInput = document.querySelector("#date-picker");
-        const picker = datepicker(pickerInput, {
-            formatter: (input, date, instance) => {
-                const value = date.toLocaleDateString();
-                input.value = value;
-            },
-        });
+class FormHandler {
+    constructor() { }
+
+    getProjectData(newForm) {
+        const formData = new FormData(newForm);
+        return {
+            title: formData.get("title"),
+            description: formData.get("desc"),
+        };
     }
 
-    createDateObj(formData) {
-        const dateComponents = formData.get("picker").split("/");
+    getTaskData(form) {
+        const formData = new FormData(form);
         return {
-            day: dateComponents[1],
-            month: dateComponents[0],
-            year: dateComponents[2],
+            title: formData.get("title"),
+            description: formData.get("desc"),
+            priority: formData.get("priority"),
+            dueDate: formData.get("date"),
         };
     }
 }
 
-const buttons = new ButtonMethods();
+const container = document.querySelector(".taskboard");
 
-const board = new BoardContainer("My Board");
+const board = new Board(new SaveHandler(), "My board");
+const uiHandler = new UiHandler(
+    new ContainerFactory(),
+    new ButtonFactory(new SaveHandler(), new FormHandler(), board)
+);
 
-export { BoardContainer, ProjectContainer, TaskContainer, ButtonMethods };
+uiHandler.renderBoard(board);
+
+export {
+    SaveHandler,
+    FormHandler,
+    Board,
+    UiHandler,
+    ContainerFactory,
+    ButtonFactory,
+};
