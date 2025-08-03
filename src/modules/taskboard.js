@@ -75,6 +75,14 @@ class Board extends Logger {
         this.#saveChanges();
     }
 
+    #updateIndexes(projectID) {
+        const project = this.boardData[projectID];
+        const taskList = project.taskList;
+        taskList.forEach(task => {
+            task.index = taskList.indexOf(task);
+        });
+    }
+
     editTaskFromProject(taskIndex, projectID, newData) {
         const project = this.boardData[projectID];
         const taskList = project.taskList;
@@ -89,8 +97,10 @@ class Board extends Logger {
 
     removeTaskFromProject(taskIndex, projectID) {
         const project = this.boardData[projectID];
-        const task = project.taskList[taskIndex];
-        project.taskList.splice(project.taskList.indexOf(task), 1);
+        const taskList = project.taskList;
+        const task = taskList[taskIndex];
+        taskList.splice(project.taskList.indexOf(task), 1);
+        this.#updateIndexes(projectID);
         this.log(`Deleted task <${task.title}> from project <${project.title}>`);
         this.#saveChanges();
     }
@@ -99,6 +109,13 @@ class Board extends Logger {
         const project = this.boardData[projectID];
         project.taskList[taskIndex].done = true;
         this.log("Task done status changed to true");
+        this.#saveChanges();
+    }
+
+    markTaskAsUndone(taskIndex, projectID) {
+        const project = this.boardData[projectID];
+        project.taskList[taskIndex].done = false;
+        this.log("Task done status changed to false");
         this.#saveChanges();
     }
 }
