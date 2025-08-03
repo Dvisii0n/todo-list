@@ -4,19 +4,25 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>the board</title>
 </head>
 
 <body>
+    <header>
+        <p>the board</p>
+    </header>
     <dialog id="add-project-dialog">
         <form class="project-form" method="post">
             <label for="title">Title:</label>
             <input type="text" name="title" required />
 
             <label for="desc">Description:</label>
-            <input type="text" name="desc" required />
+            <textarea type="text" name="desc" rows="4"></textarea>
 
-            <button type="submit" class="project-submit">Save</button>
+            <div class="form-buttons">
+                <button type="submit" class="project-submit">Save</button>
+                <button type="button" class="project-cancel">Cancel</button>
+            </div>
         </form>
     </dialog>
 
@@ -26,7 +32,7 @@
             <input type="text" name="title" required />
 
             <label for="desc">Description:</label>
-            <input type="text" name="desc" required />
+            <textarea type="text" name="desc" rows="4"></textarea>
 
             <label for="priority">Pioririty</label>
             <select name="priority">
@@ -37,7 +43,10 @@
             <label for="date">Due date:</label>
             <input type="text" name="date" id="date-picker" readonly required />
 
-            <button type="submit" class="task-submit">Save</button>
+            <div class="form-buttons">
+                <button type="submit" class="task-submit">Save</button>
+                <button type="button" class="task-cancel">Cancel</button>
+            </div>
         </form>
     </dialog>
 
