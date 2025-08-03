@@ -78,7 +78,7 @@ class Board extends Logger {
     #updateIndexes(projectID) {
         const project = this.boardData[projectID];
         const taskList = project.taskList;
-        taskList.forEach(task => {
+        taskList.forEach((task) => {
             task.index = taskList.indexOf(task);
         });
     }
